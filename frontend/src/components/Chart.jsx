@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import {
   LineChart, Line,
   BarChart, Bar,
+  PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
 } from 'recharts';
 import * as htmlToImage from 'html-to-image';
@@ -9,6 +10,9 @@ import download from 'downloadjs';
 
 const Chart = ({ data, chartType }) => {
   const chartRef = useRef();
+
+  console.log("Chart data length:", data.length);
+  console.log("Chart data sample:", data);
 
   const handleExportImage = async () => {
     if (!chartRef.current) return;
@@ -23,6 +27,29 @@ const Chart = ({ data, chartType }) => {
     });
     const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
     download(blob, 'chart-data.csv');
+  };
+
+  const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#6366f1'];
+
+  // ✅ Custom tick formatter for word wrapping
+  const WrappedTick = ({ x, y, payload }) => {
+    const words = payload.value.split(" ");
+    return (
+      <g transform={`translate(${x},${y + 10})`}>
+        {words.map((word, index) => (
+          <text
+            key={index}
+            x={0}
+            y={index * 12}
+            textAnchor="middle"
+            fill="#333"
+            fontSize="12"
+          >
+            {word}
+          </text>
+        ))}
+      </g>
+    );
   };
 
   return (
@@ -41,12 +68,19 @@ const Chart = ({ data, chartType }) => {
           Export CSV
         </button>
       </div>
+
       <div ref={chartRef}>
         <ResponsiveContainer width="100%" height={400}>
           {chartType === 'line' ? (
             <LineChart data={data}>
               <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
+              <XAxis
+                dataKey="name"
+                type="category"
+                allowDuplicatedCategory={false}
+                interval={0}
+                tick={WrappedTick}
+              />
               <YAxis />
               <Tooltip />
               <Line
@@ -57,10 +91,33 @@ const Chart = ({ data, chartType }) => {
                 animationDuration={800}
               />
             </LineChart>
+          ) : chartType === 'pie' ? (
+            <PieChart>
+              <Tooltip />
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={120}
+                label
+              >
+                {data.map((_, i) => (
+                  <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Pie>
+            </PieChart>
           ) : (
             <BarChart data={data}>
               <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
+              <XAxis
+                dataKey="name"
+                type="category"
+                allowDuplicatedCategory={false}
+                interval={0}
+                tick={WrappedTick}
+              />
               <YAxis />
               <Tooltip />
               <Bar

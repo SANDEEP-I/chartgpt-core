@@ -1,10 +1,22 @@
 import React from 'react';
 
-const Kpi = ({ data }) => (
-  <div className="bg-gray-100 p-4 rounded shadow text-center">
-    <h2 className="text-xl font-semibold">{data.label}</h2>
-    <p className="text-3xl font-bold mt-2">{data.value}</p>
-  </div>
-);
+const Kpi = ({ data }) => {
+  return (
+    <div className="bg-white dark:bg-gray-800 p-10 rounded-xl shadow-md text-center max-w-2xl mx-auto">
+      {data && data.length > 0 ? (
+        <>
+          <div className="text-3xl font-semibold text-gray-700 dark:text-gray-300">
+            {data[0].label}
+          </div>
+          <div className="text-5xl font-bold text-green-600 mt-4">
+            {parseFloat(data[0].value).toLocaleString()}
+          </div>
+        </>
+      ) : (
+        <div>No data</div>
+      )}
+    </div>
+  );
+};
 
 export default Kpi;
