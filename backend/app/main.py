@@ -1,4 +1,3 @@
-# FastAPI entry point
 # app/main.py
 
 from fastapi import FastAPI
@@ -16,20 +15,28 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Set up CORS middleware to allow all origins (for development)
+# Set up CORS middleware to allow frontend calls (adjust for production)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],  # In production, replace with specific allowed origins
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Import and include the /query route
+# Import all routes here
 from app.routes.query import router as query_router
-app.include_router(query_router, prefix="/query")
+from app.routes.file_ingestion import router as file_ingestion_router
+from app.routes.query_duckdb import router as query_duckdb_router
+from app.routes.schema_explorer import router as schema_explorer_router
 
-# Root route to verify the API is running
+# Include routers
+app.include_router(query_router, prefix="/query")
+app.include_router(file_ingestion_router)
+app.include_router(query_duckdb_router)
+app.include_router(schema_explorer_router)
+
+# Root health check route
 @app.get("/")
 async def root():
     return {"message": "ChartGPT API is running"}

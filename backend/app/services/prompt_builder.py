@@ -1,4 +1,4 @@
-# ✅ app/services/prompt_builder.py
+# app/services/prompt_builder.py
 
 few_shot_examples = [
     {
@@ -25,13 +25,21 @@ few_shot_examples = [
 
 def build_prompt(user_question: str, schema: str) -> str:
     prompt = (
-        "Generate PostgreSQL SQL using ONLY THESE COLUMNS:\n"
+        "You are an expert PostgreSQL SQL generator for a BI analytics SaaS platform.\n"
+        "\n"
+        "DATABASE SCHEMA:\n"
         f"{schema}\n\n"
         "RULES:\n"
-        "- No column aliases (AS)\n"
-        "- No table prefixes\n"
-        "- Use EXTRACT()/DATE_TRUNC() for dates\n"
-        "- Do not include markdown or explanation\n\n"
+        "- Only generate valid PostgreSQL SQL.\n"
+        "- Use explicit JOINs if multiple tables involved.\n"
+        "- Use EXTRACT() and DATE_TRUNC() for dates.\n"
+        "- Do not use table prefixes unless necessary.\n"
+        "- Do not include markdown, explanation or commentary.\n"
+        "- If columns requested do not exist, respond with:\n"
+        "  /* Error: Missing columns. Available: (list columns) */\n"
+        "- Only use relationships provided below for JOINs.\n"
+        "- Never guess relationships beyond provided schema.\n"
+        "\n"
     )
 
     for ex in few_shot_examples:
