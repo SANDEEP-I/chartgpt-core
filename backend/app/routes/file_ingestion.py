@@ -4,6 +4,7 @@ from fastapi import APIRouter, UploadFile, HTTPException
 from app.services.file_parser import FileParser
 from app.services.duckdb_instance import duckdb_instance
 import uuid
+import logging
 
 router = APIRouter()
 
@@ -19,13 +20,15 @@ async def upload_file(file: UploadFile):
         # Generate unique table name
         unique_table_name = f"upload_{uuid.uuid4().hex[:8]}"
 
-        # Register dataframe into DuckDB
+        # ✅ Ingest into DuckDB (shared instance used across query routes)
         duckdb_instance.conn.register("temp_df", df)
         duckdb_instance.conn.execute(f"CREATE TABLE {unique_table_name} AS SELECT * FROM temp_df")
         duckdb_instance.conn.unregister("temp_df")
 
-        # Extract table schema
+        # ✅ Schema extraction
         schema = duckdb_instance.get_table_schema(unique_table_name)
+
+        logging.info(f"[UPLOAD] Ingested '{file.filename}' as table '{unique_table_name}'")
 
         return {
             "message": "File ingested successfully",
@@ -34,4 +37,5 @@ async def upload_file(file: UploadFile):
         }
 
     except Exception as e:
+        logging.error(f"[UPLOAD ERROR] {e}")
         raise HTTPException(status_code=500, detail=str(e))
